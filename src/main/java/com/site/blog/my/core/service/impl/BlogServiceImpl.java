@@ -1,5 +1,6 @@
 package com.site.blog.my.core.service.impl;
 
+import com.site.blog.my.core.config.common.items;
 import com.site.blog.my.core.controller.vo.BlogDetailVO;
 import com.site.blog.my.core.controller.vo.BlogListVO;
 import com.site.blog.my.core.controller.vo.SimpleBlogListVO;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,6 +38,8 @@ public class BlogServiceImpl implements BlogService {
     private BlogTagRelationMapper blogTagRelationMapper;
     @Autowired
     private BlogCommentMapper blogCommentMapper;
+    @Resource
+    private UserMapper userMapper;
 
     @Override
     @Transactional
@@ -185,7 +189,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public PageResult getBlogsForIndexPage(int page) {
+    public PageResult getBlogsForIndexPage(int page,String Name) {
         Map params = new HashMap();
         params.put("page", page);
         //每页8条
@@ -193,10 +197,58 @@ public class BlogServiceImpl implements BlogService {
         params.put("blogStatus", 1);//过滤发布状态下的数据
         PageQueryUtil pageUtil = new PageQueryUtil(params);
         List<Blog> blogList = blogMapper.findBlogList(pageUtil);
+        //排序
+        if(!StringUtils.isEmpty(Name)){
+            blogList = this.getRecommend(blogList,Name);
+        }
+        System.out.println("-----");
+        for(Blog blog:blogList){
+            System.out.println(blog.getBlogTitle());
+        }
         List<BlogListVO> blogListVOS = getBlogListVOsByBlogs(blogList);
         int total = blogMapper.getTotalBlogs(pageUtil);
         PageResult pageResult = new PageResult(blogListVOS, total, pageUtil.getLimit(), pageUtil.getPage());
         return pageResult;
+    }
+
+    /**
+    *用余弦相似度算法计算用户模型和文章模型的相思度来重新排序文章
+    */
+    private List<Blog> getRecommend(List<Blog> blogList,String Name){
+        String userModelStrings = userMapper.findByUserName(Name).getFeatures();
+        String[] userModelString = userModelStrings.split(",");
+        Integer[] userModel = new Integer[12];
+        for(int i=0;i<12;i++){
+            userModel[i] = Integer.parseInt(userModelString[i]);
+        }
+        List<items> itemss = new ArrayList<>();
+        for(Blog blog : blogList){
+            int w = blog.getBlogCategoryId()-24;//下标位置
+            int v = userModel[w];
+            items it = new items();
+            it.setBlog(blog);
+            it.setValue(v);
+            itemss.add(it);
+            System.out.println(blog.getBlogTitle()+" "+v);
+        }
+        Collections.sort(itemss, new Comparator<items>() {
+            @Override
+            public int compare(items o1, items o2) {
+                if(o2.getValue()>o1.getValue()){
+                    return 1;
+                }else  if(o2.getValue()==o1.getValue()){
+                    return 0;
+                }else {
+                    return -1;
+                }
+            }
+        });
+        List<Blog> blogs = new ArrayList<>();
+        for(items it : itemss){
+            System.out.println(it.getBlog().getBlogTitle());
+            blogs.add(it.getBlog());
+        }
+        return blogs;
     }
 
     @Override

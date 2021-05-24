@@ -39,7 +39,7 @@ public interface BlogService {
      * @param page
      * @return
      */
-    PageResult getBlogsForIndexPage(int page);
+    PageResult getBlogsForIndexPage(int page,String nickName);
 
     /**
      * 首页侧边栏数据列表

@@ -26,4 +26,17 @@
     values (#{UserId,jdbcType=INTEGER}, #{loginUserName,jdbcType=VARCHAR}, #{loginPassword,jdbcType=VARCHAR},
       #{nickName,jdbcType=VARCHAR}, #{features,jdbcType=VARCHAR}, #{locked,jdbcType=TINYINT})
     </insert>
+
+    <select id="findByUserName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from tb_user_test
+        where login_user_name = #{loginUserName,jdbcType=VARCHAR}
+    </select>
+
+    <update id="update" >
+    update tb_user_test
+    set user_features = #{features,jdbcType=VARCHAR}
+    where user_id = #{UserId,jdbcType=INTEGER}
+  </update>
 </mapper>

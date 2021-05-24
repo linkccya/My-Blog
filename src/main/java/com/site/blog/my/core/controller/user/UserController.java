@@ -2,6 +2,7 @@ package com.site.blog.my.core.controller.user;
 
 import com.site.blog.my.core.entity.User;
 import com.site.blog.my.core.service.UserService;
+import org.springframework.scheduling.support.SimpleTriggerContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -39,25 +41,26 @@ public class UserController {
                         @RequestParam("verifyCode") String verifyCode,
                         HttpSession session){
         if (StringUtils.isEmpty(verifyCode)) {
-            session.setAttribute("errorMsg", "验证码不能为空");
+            session.setAttribute("userErrorMsg", "验证码不能为空");
             return "user/login";
         }
         if (StringUtils.isEmpty(userName) || StringUtils.isEmpty(password)) {
-            session.setAttribute("errorMsg", "用户名或密码不能为空");
+            session.setAttribute("userErrorMsg", "用户名或密码不能为空");
             return "user/login";
         }
         String kaptchaCode = session.getAttribute("verifyCode") + "";
         if (StringUtils.isEmpty(kaptchaCode) || !verifyCode.equals(kaptchaCode)) {
-            session.setAttribute("errorMsg", "验证码错误");
+            session.setAttribute("userErrorMsg", "验证码错误");
             return "user/login";
         }
         User user = userService.login(userName, password);
         if (user != null) {
-            session.setAttribute("loginUser", user.getNickName());
-            session.setAttribute("loginUserId", user.getUserId());
+            session.setAttribute("userLoginNickname", user.getNickName());
+            session.setAttribute("userLoginUserId", user.getUserId());
+            session.setAttribute("userLoginName",user.getLoginUserName());
             return "redirect:/index";
         } else {
-            session.setAttribute("errorMsg", "登陆失败");
+            session.setAttribute("userErrorMsg", "登陆失败");
             return "user/login";
         }
     }
@@ -78,39 +81,60 @@ public class UserController {
                         @RequestParam("verifyCode") String verifyCode,
                         HttpSession session){
         if (StringUtils.isEmpty(verifyCode)) {
-            session.setAttribute("errorMsg", "验证码不能为空");
+            session.setAttribute("userRegisterErrorMsg", "验证码不能为空");
             return "user/register";
         }
         if (StringUtils.isEmpty(userName) || StringUtils.isEmpty(password)) {
-            session.setAttribute("errorMsg", "用户名或密码不能为空");
+            session.setAttribute("userRegisterErrorMsg", "用户名或密码不能为空");
             return "user/register";
         }
         String kaptchaCode = session.getAttribute("verifyCode") + "";
         if (StringUtils.isEmpty(kaptchaCode) || !verifyCode.equals(kaptchaCode)) {
-            session.setAttribute("errorMsg", "验证码错误");
+            session.setAttribute("userRegisterErrorMsg", "验证码错误");
             return "user/register";
         }
         if(!password.equals(repassword)){
-            session.setAttribute("errorMsg", "两次密码不同");
+            session.setAttribute("userRegisterErrorMsg", "两次密码不同");
             return "user/register";
         }
         User user = userService.findByUserName(userName);
         if(user != null){
-            session.setAttribute("errorMsg", "用户已存在");
+            session.setAttribute("userRegisterErrorMsg", "用户已存在");
             return "user/register";
         }else{
             try{
                 int flag = userService.register(userName, password);
                 if(flag == 1){return "user/login";}
                 else{
-                    session.setAttribute("errorMsg", "注册失败");
+                    session.setAttribute("userRegisterErrorMsg", "注册失败");
                     return "user/register";
                 }
             }catch (Exception e){
-                session.setAttribute("errorMsg", "注册失败");
+                session.setAttribute("userRegisterErrorMsg", "注册失败");
                 return "user/register";
             }
         }
 
+    }
+
+    /**
+    *普通用户后台
+    */
+    @GetMapping("/index")
+    public String profile(HttpServletRequest request){
+        request.setAttribute("userPath", "index");
+        return "user/index";
+    }
+
+    /**
+    *退出
+    */
+    @GetMapping("/exit")
+    public String exit(HttpServletRequest request){
+        request.getSession().removeAttribute("userLoginUserId");
+        request.getSession().removeAttribute("userLoginNickname");
+        request.getSession().removeAttribute("userErrorMsg");
+        request.getSession().removeAttribute("userLoginName");
+        return "redirect:/index";
     }
 }

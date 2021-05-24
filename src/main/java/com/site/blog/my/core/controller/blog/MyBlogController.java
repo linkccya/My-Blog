@@ -1,6 +1,7 @@
 package com.site.blog.my.core.controller.blog;
 
 import com.site.blog.my.core.controller.vo.BlogDetailVO;
+import com.site.blog.my.core.dao.UserMapper;
 import com.site.blog.my.core.entity.BlogComment;
 import com.site.blog.my.core.entity.BlogLink;
 import com.site.blog.my.core.service.*;
@@ -15,12 +16,6 @@ import javax.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author 13
- * @qq交流群 796794009
- * @email 2449207463@qq.com
- * @link http://13blog.site
- */
 @Controller
 public class MyBlogController {
 
@@ -39,6 +34,8 @@ public class MyBlogController {
     private ConfigService configService;
     @Resource
     private CategoryService categoryService;
+    @Resource
+    private UserMapper userMapper;
 
     /**
      * 首页
@@ -57,7 +54,13 @@ public class MyBlogController {
      */
     @GetMapping({"/page/{pageNum}"})
     public String page(HttpServletRequest request, @PathVariable("pageNum") int pageNum) {
-        PageResult blogPageResult = blogService.getBlogsForIndexPage(pageNum);
+        PageResult blogPageResult;
+        if(request.getSession().getAttribute("userLoginName")!=null){
+            System.out.println(request.getSession().getAttribute("userLoginName").toString());
+            blogPageResult = blogService.getBlogsForIndexPage(pageNum,request.getSession().getAttribute("userLoginName").toString());
+        }else{
+            blogPageResult = blogService.getBlogsForIndexPage(pageNum,"");
+        }
         if (blogPageResult == null) {
             return "error/error_404";
         }
@@ -93,6 +96,28 @@ public class MyBlogController {
     public String detail(HttpServletRequest request, @PathVariable("blogId") Long blogId, @RequestParam(value = "commentPage", required = false, defaultValue = "1") Integer commentPage) {
         BlogDetailVO blogDetailVO = blogService.getBlogDetail(blogId);
         if (blogDetailVO != null) {
+            if(request.getSession().getAttribute("userLoginName")!=null){
+                int w = blogDetailVO.getBlogCategoryId()-24;
+                String name = request.getSession().getAttribute("userLoginName").toString();
+                String userModelStrings = userMapper.findByUserName(name).getFeatures();
+                String[] userModelString = userModelStrings.split(",");
+                Integer[] userModel = new Integer[12];
+                for(int i=0;i<12;i++){
+                    userModel[i] = Integer.parseInt(userModelString[i]);
+                }
+                userModel[w]++;
+                for(int i=0;i<12;i++){
+                    userModelString[i] = String.valueOf(userModel[i]);
+                }
+                String s="";
+                for(int i=0;i<12;i++){
+                    s = s+userModelString[i]+",";
+                }
+                System.out.println(s);
+                int id = (int)request.getSession().getAttribute("userLoginUserId");
+                System.out.println(id);
+                userMapper.update(id,s);
+            }
             request.setAttribute("blogDetailVO", blogDetailVO);
             request.setAttribute("commentPageResult", commentService.getCommentPageByBlogIdAndPageNum(blogId, commentPage));
         }
