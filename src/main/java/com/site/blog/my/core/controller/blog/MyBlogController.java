@@ -4,6 +4,7 @@ import com.site.blog.my.core.controller.vo.BlogDetailVO;
 import com.site.blog.my.core.dao.UserMapper;
 import com.site.blog.my.core.entity.BlogComment;
 import com.site.blog.my.core.entity.BlogLink;
+import com.site.blog.my.core.entity.History;
 import com.site.blog.my.core.service.*;
 import com.site.blog.my.core.util.*;
 import org.springframework.stereotype.Controller;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -36,6 +38,8 @@ public class MyBlogController {
     private CategoryService categoryService;
     @Resource
     private UserMapper userMapper;
+    @Resource
+    private HistoryService historyService;
 
     /**
      * 首页
@@ -97,26 +101,13 @@ public class MyBlogController {
         BlogDetailVO blogDetailVO = blogService.getBlogDetail(blogId);
         if (blogDetailVO != null) {
             if(request.getSession().getAttribute("userLoginName")!=null){
-                int w = blogDetailVO.getBlogCategoryId()-24;
-                String name = request.getSession().getAttribute("userLoginName").toString();
-                String userModelStrings = userMapper.findByUserName(name).getFeatures();
-                String[] userModelString = userModelStrings.split(",");
-                Integer[] userModel = new Integer[12];
-                for(int i=0;i<12;i++){
-                    userModel[i] = Integer.parseInt(userModelString[i]);
-                }
-                userModel[w]++;
-                for(int i=0;i<12;i++){
-                    userModelString[i] = String.valueOf(userModel[i]);
-                }
-                String s="";
-                for(int i=0;i<12;i++){
-                    s = s+userModelString[i]+",";
-                }
-                System.out.println(s);
-                int id = (int)request.getSession().getAttribute("userLoginUserId");
-                System.out.println(id);
-                userMapper.update(id,s);
+                History history = new History();
+                history.setBlogId(blogId);
+                history.setUserId((Integer)request.getSession().getAttribute("userLoginUserId"));
+                history.setBlogTitle(blogDetailVO.getBlogTitle());
+                history.setCategoryId(blogDetailVO.getBlogCategoryId());
+                history.setCreateTime(new Date());
+                historyService.save(history);
             }
             request.setAttribute("blogDetailVO", blogDetailVO);
             request.setAttribute("commentPageResult", commentService.getCommentPageByBlogIdAndPageNum(blogId, commentPage));

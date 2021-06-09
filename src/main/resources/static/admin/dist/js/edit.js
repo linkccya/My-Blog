@@ -16,6 +16,7 @@ $(function () {
         syncScrolling: "single",
         path: "/admin/plugins/editormd/lib/",
         toolbarModes: 'full',
+        emoji: true,
         /**图片上传配置*/
         imageUpload: true,
         imageFormats: ["jpg", "jpeg", "gif", "png", "bmp", "webp"], //图片上传格式
@@ -193,7 +194,7 @@ $('#saveButton').click(function () {
                     confirmButtonClass: 'btn btn-success',
                     buttonsStyling: false
                 }).then(function () {
-                    window.location.href = "/admin/blogs";
+                    // window.location.href = "/admin/blogs";
                 })
             }
             else {

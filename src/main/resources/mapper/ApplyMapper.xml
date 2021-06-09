@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.site.blog.my.core.dao.ApplyMapper">
+    <resultMap id="BaseResultMap" type="com.site.blog.my.core.entity.Apply">
+        <id column="apply_id" jdbcType="INTEGER" property="applyId" />
+        <result column="user_id" jdbcType="INTEGER" property="userId" />
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+        <result column="is_deleted" jdbcType="TINYINT" property="isDeleted" />
+        <result column="user_name" jdbcType="VARCHAR" property="userName" />
+    </resultMap>
+    <sql id="Base_Column_List">
+    apply_id,user_id,create_time,is_deleted,user_name
+    </sql>
+
+    <insert id="insert" parameterType="com.site.blog.my.core.entity.Apply">
+    insert into tb_apply (apply_id,user_id,create_time,is_deleted,user_name)
+    values (#{applyId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
+      #{isDeleted,jdbcType=TINYINT}, #{userName,jdbcType=VARCHAR})
+    </insert>
+
+    <select id="findApplyList" parameterType="Map" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from tb_apply
+        where is_deleted=0
+        <if test="start!=null and limit!=null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="getTotalApply" parameterType="Map" resultType="int">
+        select count(*) from tb_apply
+        where is_deleted=0
+    </select>
+
+    <update id="checkDone">
+        update tb_apply
+        set is_deleted = 1 where user_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        and is_deleted = 0
+    </update>
+</mapper>

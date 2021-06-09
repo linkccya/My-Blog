@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import java.util.Map;
 
 @Controller
@@ -35,6 +36,7 @@ public class CommentController {
         if (ids.length < 1) {
             return ResultGenerator.genFailResult("参数异常！");
         }
+        System.out.println(Arrays.toString(ids));
         if (commentService.checkDone(ids)) {
             return ResultGenerator.genSuccessResult();
         } else {

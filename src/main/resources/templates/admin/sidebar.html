@@ -12,7 +12,7 @@
         <!-- Sidebar user panel (optional) -->
         <div class="user-panel mt-3 pb-3 mb-3 d-flex">
             <div class="image">
-                <img th:src="@{/admin/dist/img/avatar5.png}" class="img-circle elevation-2" alt="User Image">
+                <img th:src="@{/admin/dist/img/avatar04.png}" class="img-circle elevation-2" alt="User Image">
             </div>
             <div class="info">
                 <a href="#" class="d-block" th:text="${session.loginUser}"></a>
@@ -71,6 +71,14 @@
                         <i class="fa fa-tags nav-icon" aria-hidden="true"></i>
                         <p>
                             标签管理
+                        </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/admin/apply}" th:class="${path}=='apply'?'nav-link active':'nav-link'">
+                        <i class="fa fa-tags nav-icon" aria-hidden="true"></i>
+                        <p>
+                            申请审批
                         </p>
                     </a>
                 </li>

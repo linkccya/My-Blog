@@ -21,6 +21,15 @@ public class User {
 
     private String nickName;
 
+    private String userEmail;
+
+    private String userPhone;
+
+    /**
+    *角色类型
+    */
+    private Integer roleId;
+
     /**
     *向量
     */

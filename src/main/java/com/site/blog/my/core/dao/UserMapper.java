@@ -21,6 +21,11 @@ public interface UserMapper {
     User findByUserName(String userName);
 
     /**
+     *根据ID查询普通用户
+     */
+    User findByUserId(Integer Id);
+
+    /**
     *插入用户
     */
     int insert(User user);
@@ -28,5 +33,24 @@ public interface UserMapper {
     /**
     *修改特征
     */
-    int update(@Param("UserId")int UserId,@Param("features")String features);
+    int update(@Param("UserId")int UserId, @Param("features")String features);
+
+    /**
+    *修改个人信息
+    */
+    int updateInfo(@Param("userId")int userId, @Param("nickName")String nickName,
+    @Param("userPhone")String userPhone, @Param("userEmail")String userEmail);
+
+    /**
+    *修改密码
+    */
+    int updatePassword(@Param("userId")int userId, @Param("password")String password);
+
+    /**
+    *修改角色
+    */
+    int updateRole(@Param("userId")int userId, @Param("roleId")int roleId);
+
+    int updateRoleByIds(Integer[] ids);
+
 }

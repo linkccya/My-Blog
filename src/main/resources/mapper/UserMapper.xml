@@ -8,9 +8,13 @@
         <result column="nick_name" jdbcType="VARCHAR" property="nickName" />
         <result column="user_features" jdbcType="VARCHAR" property="features" />
         <result column="locked" jdbcType="TINYINT" property="locked" />
+        <result column="user_email" jdbcType="VARCHAR" property="userEmail" />
+        <result column="user_phone" jdbcType="VARCHAR" property="userPhone" />
+        <result column="role_id" jdbcType="INTEGER" property="roleId" />
     </resultMap>
     <sql id="Base_Column_List">
-    user_id, login_user_name, login_password, nick_name, user_features, locked
+    user_id, login_user_name, login_password, nick_name, user_features, locked, user_email, user_phone
+    , role_id
     </sql>
 
     <select id="login" resultMap="BaseResultMap">
@@ -22,9 +26,10 @@
 
     <insert id="insert" parameterType="com.site.blog.my.core.entity.User">
     insert into tb_user_test (user_id, login_user_name, login_password,
-      nick_name, user_features, locked)
+      nick_name, user_features, locked,user_email,user_phone,role_id)
     values (#{UserId,jdbcType=INTEGER}, #{loginUserName,jdbcType=VARCHAR}, #{loginPassword,jdbcType=VARCHAR},
-      #{nickName,jdbcType=VARCHAR}, #{features,jdbcType=VARCHAR}, #{locked,jdbcType=TINYINT})
+      #{nickName,jdbcType=VARCHAR}, #{features,jdbcType=VARCHAR}, #{locked,jdbcType=TINYINT},
+      #{userEmail,jdbcType=VARCHAR}, #{userPhone,jdbcType=VARCHAR}, #{roleId,jdbcType=INTEGER})
     </insert>
 
     <select id="findByUserName" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -34,9 +39,44 @@
         where login_user_name = #{loginUserName,jdbcType=VARCHAR}
     </select>
 
+    <select id="findByUserId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from tb_user_test
+        where user_id = #{UserId,jdbcType=INTEGER}
+    </select>
+
     <update id="update" >
     update tb_user_test
     set user_features = #{features,jdbcType=VARCHAR}
     where user_id = #{UserId,jdbcType=INTEGER}
   </update>
+
+    <update id="updateInfo" >
+    update tb_user_test
+    set nick_name = #{nickName,jdbcType=VARCHAR}, user_email = #{userEmail,jdbcType=VARCHAR},
+    user_phone = #{userPhone,jdbcType=VARCHAR}
+    where user_id = #{userId,jdbcType=INTEGER}
+  </update>
+
+    <update id="updatePassword" >
+    update tb_user_test
+    set login_password = #{password,jdbcType=VARCHAR}
+    where user_id = #{userId,jdbcType=INTEGER}
+  </update>
+
+    <update id="updateRole" >
+    update tb_user_test
+    set role_id = #{roleId,jdbcType=INTEGER}
+    where user_id = #{userId,jdbcType=INTEGER}
+  </update>
+
+    <update id="updateRoleByIds">
+        update tb_user_test
+        set role_id = 1 where user_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
 </mapper>

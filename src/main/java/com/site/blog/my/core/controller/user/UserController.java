@@ -1,14 +1,14 @@
 package com.site.blog.my.core.controller.user;
 
 import com.site.blog.my.core.entity.User;
+import com.site.blog.my.core.service.CategoryService;
 import com.site.blog.my.core.service.UserService;
+import com.site.blog.my.core.util.Result;
+import com.site.blog.my.core.util.ResultGenerator;
 import org.springframework.scheduling.support.SimpleTriggerContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -25,6 +25,8 @@ import javax.servlet.http.HttpSession;
 public class UserController {
     @Resource
     private UserService userService;
+    @Resource
+    private CategoryService categoryService;
 
     /**
     *跳到普通用户登录界面
@@ -58,6 +60,9 @@ public class UserController {
             session.setAttribute("userLoginNickname", user.getNickName());
             session.setAttribute("userLoginUserId", user.getUserId());
             session.setAttribute("userLoginName",user.getLoginUserName());
+            session.setAttribute("userEmail",user.getUserEmail());
+            session.setAttribute("userPhone",user.getUserPhone());
+            session.setAttribute("userRoleId",user.getRoleId());
             return "redirect:/index";
         } else {
             session.setAttribute("userErrorMsg", "登陆失败");
@@ -72,10 +77,11 @@ public class UserController {
     public String register(){ return "user/register";}
 
     /**
-     *普通用户登录逻辑判断
+     *普通用户注册逻辑判断
      */
     @PostMapping("/register")
     public String register(@RequestParam("userName") String userName,
+                           @RequestParam("email") String email,
                         @RequestParam("password") String password,
                         @RequestParam("repassword") String repassword,
                         @RequestParam("verifyCode") String verifyCode,
@@ -103,7 +109,7 @@ public class UserController {
             return "user/register";
         }else{
             try{
-                int flag = userService.register(userName, password);
+                int flag = userService.register(userName, password,email);
                 if(flag == 1){return "user/login";}
                 else{
                     session.setAttribute("userRegisterErrorMsg", "注册失败");
@@ -127,6 +133,55 @@ public class UserController {
     }
 
     /**
+    *更新用户信息
+    */
+    @PostMapping("/userInfo")
+    @ResponseBody
+    public String userInfo(@RequestParam(value = "userId", required = true) int userId,
+                           @RequestParam(value = "nickName", required = true) String nickName,
+                           @RequestParam(value = "userPhone", required = false) String userPhone,
+                           @RequestParam(value = "userEmail", required = true) String userEmail,
+                           HttpSession session){
+        int updateResult = 0;
+        updateResult = userService.updateInfo(userId,nickName, userPhone, userEmail);
+        if(updateResult>0){
+            session.setAttribute("userLoginNickname", nickName);
+            session.setAttribute("userEmail", userEmail);
+            session.setAttribute("userPhone", userPhone);
+            return "success";
+        }
+        return "修改失败";
+    }
+
+    /**
+     *更新用户密码
+     */
+    @PostMapping("/updatePassword")
+    @ResponseBody
+    public String updatePassword(@RequestParam(value = "userId2", required = true) String userName,
+                           @RequestParam(value = "originalPassword", required = true) String originalPassword,
+                           @RequestParam(value = "newPassword", required = true) String newPassword,
+                                 HttpServletRequest request){
+        if (StringUtils.isEmpty(originalPassword) || StringUtils.isEmpty(newPassword)) {
+            return "参数不能为空";
+        }
+        if (userService.updatePassword(userName, originalPassword, newPassword)) {
+            //修改成功后清空session中的数据，前端控制跳转至登录页
+            request.getSession().removeAttribute("userLoginUserId");
+            request.getSession().removeAttribute("userLoginNickname");
+            request.getSession().removeAttribute("userErrorMsg");
+            request.getSession().removeAttribute("userLoginName");
+            request.getSession().removeAttribute("userEmail");
+            request.getSession().removeAttribute("userPhone");
+            request.getSession().removeAttribute("userRoleId");
+            return "success";
+        } else {
+            return "修改失败";
+        }
+    }
+
+
+    /**
     *退出
     */
     @GetMapping("/exit")
@@ -135,6 +190,9 @@ public class UserController {
         request.getSession().removeAttribute("userLoginNickname");
         request.getSession().removeAttribute("userErrorMsg");
         request.getSession().removeAttribute("userLoginName");
+        request.getSession().removeAttribute("userEmail");
+        request.getSession().removeAttribute("userPhone");
+        request.getSession().removeAttribute("userRoleId");
         return "redirect:/index";
     }
 }

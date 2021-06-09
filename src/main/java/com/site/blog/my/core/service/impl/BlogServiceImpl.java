@@ -5,10 +5,7 @@ import com.site.blog.my.core.controller.vo.BlogDetailVO;
 import com.site.blog.my.core.controller.vo.BlogListVO;
 import com.site.blog.my.core.controller.vo.SimpleBlogListVO;
 import com.site.blog.my.core.dao.*;
-import com.site.blog.my.core.entity.Blog;
-import com.site.blog.my.core.entity.BlogCategory;
-import com.site.blog.my.core.entity.BlogTag;
-import com.site.blog.my.core.entity.BlogTagRelation;
+import com.site.blog.my.core.entity.*;
 import com.site.blog.my.core.service.BlogService;
 import com.site.blog.my.core.util.MarkDownUtil;
 import com.site.blog.my.core.util.PageQueryUtil;
@@ -22,24 +19,27 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.rmi.UnmarshalException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class BlogServiceImpl implements BlogService {
 
-    @Autowired
+    @Resource
     private BlogMapper blogMapper;
-    @Autowired
+    @Resource
     private BlogCategoryMapper categoryMapper;
-    @Autowired
+    @Resource
     private BlogTagMapper tagMapper;
-    @Autowired
+    @Resource
     private BlogTagRelationMapper blogTagRelationMapper;
-    @Autowired
+    @Resource
     private BlogCommentMapper blogCommentMapper;
     @Resource
     private UserMapper userMapper;
+    @Resource
+    private HistoryMapper historyMapper;
 
     @Override
     @Transactional
@@ -196,10 +196,14 @@ public class BlogServiceImpl implements BlogService {
         params.put("limit", 8);
         params.put("blogStatus", 1);//过滤发布状态下的数据
         PageQueryUtil pageUtil = new PageQueryUtil(params);
-        List<Blog> blogList = blogMapper.findBlogList(pageUtil);
+        List<Blog> blogList = new ArrayList<>();
         //排序
         if(!StringUtils.isEmpty(Name)){
-            blogList = this.getRecommend(blogList,Name);
+            int star = (page - 1)*8;
+            int end = star+8;
+            blogList = this.getRecommend(star,end,Name);
+        }else {
+            blogList = blogMapper.findBlogList(pageUtil);
         }
         System.out.println("-----");
         for(Blog blog:blogList){
@@ -214,17 +218,26 @@ public class BlogServiceImpl implements BlogService {
     /**
     *用余弦相似度算法计算用户模型和文章模型的相思度来重新排序文章
     */
-    private List<Blog> getRecommend(List<Blog> blogList,String Name){
-        String userModelStrings = userMapper.findByUserName(Name).getFeatures();
-        String[] userModelString = userModelStrings.split(",");
-        Integer[] userModel = new Integer[12];
-        for(int i=0;i<12;i++){
-            userModel[i] = Integer.parseInt(userModelString[i]);
+    private List<Blog> getRecommend(int star,int end,String Name){
+        List<Blog> blogList = blogMapper.getAllBlogs();
+        //全量获得分类，加入map置为0。
+        List<BlogCategory> categories = categoryMapper.getAllCategories();
+        HashMap<Integer,Integer> hashMap = new HashMap<>();
+        for(BlogCategory c:categories){
+            hashMap.put(c.getCategoryId(),0);
         }
+        //根据历史记录获取分类权重。
+        User user = userMapper.findByUserName(Name);
+        int userId = user.getUserId();
+        List<History> historyList = historyMapper.findHistoryByUserId(userId);
+        for(History h: historyList){
+            int v = hashMap.get(h.getCategoryId())+1;
+            hashMap.put(h.getCategoryId(),v);
+        }
+        //把权重赋值到博客，排序。
         List<items> itemss = new ArrayList<>();
         for(Blog blog : blogList){
-            int w = blog.getBlogCategoryId()-24;//下标位置
-            int v = userModel[w];
+            int v = hashMap.get(blog.getBlogCategoryId());
             items it = new items();
             it.setBlog(blog);
             it.setValue(v);
@@ -244,9 +257,13 @@ public class BlogServiceImpl implements BlogService {
             }
         });
         List<Blog> blogs = new ArrayList<>();
+        int num = 0;
         for(items it : itemss){
-            System.out.println(it.getBlog().getBlogTitle());
-            blogs.add(it.getBlog());
+            if(num>=star&&num<end) {
+                System.out.println(it.getBlog().getBlogTitle());
+                blogs.add(it.getBlog());
+            }
+            num++;
         }
         return blogs;
     }

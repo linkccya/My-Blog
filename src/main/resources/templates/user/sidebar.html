@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <aside th:fragment="sidebar-fragment(userPath)" class="main-sidebar sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
-    <a th:href="@{/admin/index}" class="brand-link">
+    <a th:href="@{/user/index}" class="brand-link">
         <img th:src="@{/admin/dist/img/logo.png}" alt="ssm-cluster Logo" class="brand-image img-circle elevation-3"
              style="opacity: .8">
         <span class="brand-text font-weight-light">个人主页</span>
@@ -34,16 +34,24 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a th:href="@{/admin/blogs/edit}" th:class="${userPath}=='edit'?'nav-link active':'nav-link'">
+                    <a th:href="@{/user/history}" th:class="${userPath}=='history'?'nav-link active':'nav-link'">
                         <i class="nav-icon fa fa fa-pencil-square-o"></i>
                         <p>
                             游览记录
                         </p>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a th:href="@{/user/write}" th:class="${userPath}=='write'?'nav-link active':'nav-link'">
+                        <i class="nav-icon fa fa fa-pencil-square-o"></i>
+                        <p>
+                            写博客
+                        </p>
+                    </a>
+                </li>
                 <li class="nav-header">系统管理</li>
                 <li class="nav-item">
-                    <a th:href="@{/admin/logout}" class="nav-link">
+                    <a th:href="@{/user/exit}" class="nav-link">
                         <i class="fa fa-sign-out nav-icon"></i>
                         <p>安全退出</p>
                     </a>

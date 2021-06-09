@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.site.blog.my.core.dao.HistoryMapper">
+    <resultMap id="BaseResultMap" type="com.site.blog.my.core.entity.History">
+        <id column="history_id" jdbcType="BIGINT" property="historyId" />
+        <result column="user_id" jdbcType="INTEGER" property="userId" />
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+        <result column="blog_id" jdbcType="BIGINT" property="blogId" />
+        <result column="blog_title" jdbcType="VARCHAR" property="blogTitle" />
+        <result column="category_id" jdbcType="INTEGER" property="categoryId" />
+    </resultMap>
+    <sql id="Base_Column_List">
+    history_id,user_id,create_time,blog_id,blog_title,category_id
+    </sql>
+
+    <insert id="insert" parameterType="com.site.blog.my.core.entity.History">
+    insert into tb_history (history_id,user_id,create_time,blog_id,blog_title,category_id)
+    values (#{historyId,jdbcType=BIGINT}, #{userId,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
+      #{blogId,jdbcType=BIGINT}, #{blogTitle,jdbcType=VARCHAR}, #{categoryId,jdbcType=INTEGER})
+    </insert>
+
+    <select id="findHistoryList" parameterType="Map" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from tb_history
+        where user_id = #{userId}
+        <if test="start!=null and limit!=null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="getTotalHistory" parameterType="Map" resultType="int">
+        select count(*) from tb_history  where user_id = #{userId}
+    </select>
+
+    <select id="findHistoryByUserId" parameterType="Map" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from tb_history
+        where user_id = #{userId}
+    </select>
+
+</mapper>

@@ -23,5 +23,28 @@ public interface UserService {
     /**
     *注册用户
     */
-    int register(String userName, String password);
+    int register(String userName, String password, String email);
+
+    /**
+    *更新个人信息
+    */
+    int updateInfo(int userId, String nickName,String userPhone,String userEmail);
+
+    /**
+    *修改密码
+    */
+    Boolean updatePassword(String userName, String originalPassword, String newPassword);
+
+    /**
+     *根据ID查询用户
+     */
+    User findByUserId(Integer Id);
+
+    /**
+     * 批量修改权限
+     *
+     * @param ids
+     * @return
+     */
+    Integer updateRoleByIds(Integer[] ids);
 }

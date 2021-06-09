@@ -116,6 +116,7 @@ public class AdminController {
         }
         Integer loginUserId = (int) request.getSession().getAttribute("loginUserId");
         if (adminUserService.updateName(loginUserId, loginUserName, nickName)) {
+            request.getSession().setAttribute("loginUser", nickName);
             return "success";
         } else {
             return "修改失败";

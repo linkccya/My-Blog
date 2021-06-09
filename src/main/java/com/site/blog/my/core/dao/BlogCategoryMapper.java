@@ -27,5 +27,7 @@ public interface BlogCategoryMapper {
 
     int getTotalCategories(PageQueryUtil pageUtil);
 
+    List<BlogCategory> getAllCategories();
+
     int deleteBatch(Integer[] ids);
 }

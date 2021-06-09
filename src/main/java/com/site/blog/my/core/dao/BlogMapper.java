@@ -20,8 +20,10 @@ public interface BlogMapper {
     int updateByPrimaryKeyWithBLOBs(Blog record);
 
     int updateByPrimaryKey(Blog record);
-
+//根据条件获取博客
     List<Blog> findBlogList(PageQueryUtil pageUtil);
+//全量获取博客
+    List<Blog> getAllBlogs();
 
     List<Blog> findBlogListByType(@Param("type") int type, @Param("limit") int limit);
 

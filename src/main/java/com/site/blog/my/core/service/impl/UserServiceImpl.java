@@ -32,7 +32,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int register(String userName, String password) {
+    public int register(String userName, String password, String email) {
         User user = new User();
         user.setLoginUserName(userName);
         String passwordMd5 = MD5Util.MD5Encode(password, "UTF-8");
@@ -42,6 +42,40 @@ public class UserServiceImpl implements UserService {
         user.setFeatures(features);
         String defaultNickName = UUID.randomUUID().toString().replaceAll("-","");
         user.setNickName(defaultNickName);
+        user.setUserEmail(email);
+        user.setRoleId(0);
         return userMapper.insert(user);
     }
+
+    @Override
+    public int updateInfo(int userId, String nickName,String userPhone,String userEmail) {
+        return userMapper.updateInfo(userId,nickName,userPhone,userEmail);
+    }
+
+    @Override
+    public Boolean updatePassword(String userName, String originalPassword, String newPassword) {
+        User user = userMapper.findByUserName(userName);
+        String originalPasswordMd5 = MD5Util.MD5Encode(originalPassword, "UTF-8");
+        String newPasswordMd5 = MD5Util.MD5Encode(newPassword, "UTF-8");
+        //比较原密码是否正确
+        if (originalPasswordMd5.equals(user.getLoginPassword())) {
+            //设置新密码并修改
+            if (userMapper.updatePassword(user.getUserId(),newPasswordMd5) > 0) {
+                //修改成功则返回true
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public User findByUserId(Integer Id) {
+        return userMapper.findByUserId(Id);
+    }
+
+    @Override
+    public Integer updateRoleByIds(Integer[] ids) {
+        return userMapper.updateRoleByIds(ids);
+    }
+
 }
